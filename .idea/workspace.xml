@@ -20,10 +20,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2287c62b-f1b5-4e0c-a438-159e336b1a01" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/books-web.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Controller/BooksController.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/books/books.html.twig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/base.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html.twig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/home/home.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home/home.html.twig" afterDir="false" />
@@ -191,7 +187,7 @@
       <workItem from="1601016021614" duration="105000" />
       <workItem from="1601016153288" duration="145000" />
       <workItem from="1601016322588" duration="206000" />
-      <workItem from="1601016542552" duration="16171000" />
+      <workItem from="1601016542552" duration="16408000" />
     </task>
     <servers />
   </component>
