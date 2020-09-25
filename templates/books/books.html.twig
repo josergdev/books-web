@@ -1,0 +1,230 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <header>
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <a class="navbar-brand" href="/">Books Level Test</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/books">Books <span class="sr-only">(current)</span></a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main mb-5">
+        <div class="container">
+            <div class="row">
+                <h1 class="py-5">Books</h1>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th scope="col">ISBN</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Author</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="books-list">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-4">
+                    <form id="BookForm">
+                        <div class="form-group">
+                            <label for="BooksFormIsbn">ISBN</label>
+                            <input type="text" class="form-control" id="BooksFormIsbn" placeholder="9780132350884" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="BooksFormTitle">Title</label>
+                            <input type="text" class="form-control" id="BooksFormTitle" placeholder="Clean Code" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="BooksFormAuthor">Author</label>
+                            <input type="text" class="form-control" id="BooksFormAuthor" placeholder="Robert C. Martin" required>
+                        </div>
+                        <input id="BooksFormReset" class="btn btn-primary" type="reset" value="Reset">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function addBooksList(url) {
+            console.log(url);
+            const tableBody = document.getElementById("books-list");
+            fetch(url)
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (books) {
+                    tableBody.innerHTML = "";
+                    books.forEach(function (book) {
+                        let bookRow = document.createElement("tr");
+                        bookRow.appendChild(tableCellFor(book.isbn));
+                        bookRow.appendChild(tableCellFor(book.title));
+                        bookRow.appendChild(tableCellFor(book.author));
+                        bookRow.appendChild(tableCellActionsFor(book));
+                        tableBody.appendChild(bookRow);
+                    })
+                });
+        }
+        function tableCellFor(text) {
+            const cell = document.createElement("td");
+            cell.appendChild(document.createTextNode(text));
+            return cell;
+        }
+
+        function tableCellActionsFor(book) {
+            const cell = document.createElement("td");
+            const deleteButton = document.createElement('button');
+            deleteButton.insertAdjacentHTML("beforeend", "<i class=\"fa fa-trash\"></i>");
+            deleteButton.type = "button";
+            deleteButton.classList.add("btn", "btn-danger", "btn-sm", "mx-1");
+            deleteButton.onclick = function(){
+                deleteBook(book.isbn);
+            };
+
+            const editButton = document.createElement('button');
+            editButton.insertAdjacentHTML("beforeend", "<i class=\"fa fa-edit\"></i>");
+            editButton.type = "button";
+            editButton.classList.add("btn", "btn-primary", "btn-sm", "mx-1");
+            editButton.onclick = function(){
+                editBook(book);
+            };
+
+            cell.appendChild(editButton);
+            cell.appendChild(deleteButton);
+
+            return cell;
+        }
+
+        function leaveFormBlank() {
+            const bookForm = document.getElementById("BookForm");
+            bookForm.reset();
+            bookForm.addEventListener("submit", saveBookHandler);
+            bookForm.removeEventListener("submit", editBookHandler);
+            const inputIsbn = document.getElementById("BooksFormIsbn");
+            inputIsbn.disabled = false;
+        }
+
+        function resetFormHandler(e) {
+            e.preventDefault();
+            console.log("Reset handler");
+            leaveFormBlank();
+        }
+
+        function saveBookHandler(e) {
+            console.log("Saving book");
+            e.preventDefault();
+            const book = {
+                "isbn": document.getElementById("BooksFormIsbn").value,
+                "title": document.getElementById("BooksFormTitle").value,
+                "author": document.getElementById("BooksFormAuthor").value
+            };
+
+            postBookService(book);
+        }
+
+        function postBookService(book) {
+            const url = "http://localhost:8000/books";
+            fetch(url, {
+                method: "POST",
+                body: JSON.stringify(book)
+            })
+            .then(function(response) {
+                if(response.ok) {
+                    addBooksList(url);
+                    leaveFormBlank();
+                } else {
+                    location.reload();
+                }
+            })
+        }
+
+        function deleteBook(isbn) {
+            const url = "http://localhost:8000/books";
+            deleteBookService(isbn)
+            .then( function (response) {
+                    addBooksList(url);
+                }
+            )
+        }
+
+        function deleteBookService(isbn) {
+            const url = "http://localhost:8000/books";
+            const deleteUrl = url + "/" + isbn;
+            return fetch(deleteUrl, {method: "DELETE"});
+        }
+
+        function  editBook(book) {
+            turnFormEditStatus(book);
+        }
+
+        function editBookHandler(e) {
+            console.log("Editing book");
+            e.preventDefault();
+            const url = "http://localhost:8000/books";
+            const book = {
+                "isbn": document.getElementById("BooksFormIsbn").value,
+                "title": document.getElementById("BooksFormTitle").value,
+                "author": document.getElementById("BooksFormAuthor").value
+            };
+            editBookService(book)
+            .then(function (response) {
+                if(response.ok) {
+                    addBooksList(url);
+                    leaveFormBlank();
+                } else {
+                    location.reload();
+                }
+            })
+        }
+
+        function editBookService(book) {
+            const url = "http://localhost:8000/books";
+            const editUrl = url + "/" + book.isbn;
+
+            return fetch(editUrl, {
+                method: "PUT",
+                body: JSON.stringify(book)
+            })
+
+        }
+
+        function turnFormEditStatus(book) {
+            const bookForm = document.getElementById("BookForm");
+            bookForm.removeEventListener("submit", saveBookHandler);
+            bookForm.addEventListener("submit", editBookHandler);
+            const isbnInput = document.getElementById("BooksFormIsbn");
+            isbnInput.value = book.isbn;
+            isbnInput.disabled = true;
+            document.getElementById("BooksFormTitle").value = book.title;
+            document.getElementById("BooksFormAuthor").value = book.author;
+        }
+
+
+    </script>
+
+    <script>
+        addBooksList("http://localhost:8000/books");
+        leaveFormBlank();
+        document.getElementById("BooksFormReset").addEventListener("click", resetFormHandler);
+    </script>
+
+{% endblock %}
