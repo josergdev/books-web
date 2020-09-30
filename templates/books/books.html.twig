@@ -46,7 +46,7 @@
                     <form id="BookForm">
                         <div class="form-group">
                             <label for="BooksFormIsbn">ISBN</label>
-                            <input type="text" class="form-control" id="BooksFormIsbn" placeholder="9780132350884" required>
+                            <input type="text" class="form-control" id="BooksFormIsbn" data-mask="999-99-999-9999-9" placeholder="978-01-323-5088-4" required>
                         </div>
                         <div class="form-group">
                             <label for="BooksFormTitle">Title</label>
@@ -58,6 +58,9 @@
                         </div>
                         <input id="BooksFormReset" class="btn btn-primary" type="reset" value="Reset">
                         <button class="btn btn-primary" type="submit">Save</button>
+                        <div  id="BookFormErrorMsg" class="alert alert-danger my-3" style="display: none" role="alert">
+                            A simple danger alert—check it out!
+                        </div>
                     </form>
                 </div>
             </div>
@@ -121,6 +124,7 @@
             bookForm.removeEventListener("submit", editBookHandler);
             const inputIsbn = document.getElementById("BooksFormIsbn");
             inputIsbn.disabled = false;
+            hideBookFormError();
         }
 
         function resetFormHandler(e) {
@@ -133,7 +137,7 @@
             console.log("Saving book");
             e.preventDefault();
             const book = {
-                "isbn": document.getElementById("BooksFormIsbn").value,
+                "isbn": document.getElementById("BooksFormIsbn").value.replaceAll('-', ''),
                 "title": document.getElementById("BooksFormTitle").value,
                 "author": document.getElementById("BooksFormAuthor").value
             };
@@ -151,9 +155,11 @@
                 if(response.ok) {
                     addBooksList(url);
                     leaveFormBlank();
-                } else {
-                    location.reload();
+                } else if (response.status === 400) {
+                    return response.json();
                 }
+            }).then(function (data) {
+                showBookFormError(data.error);
             })
         }
 
@@ -181,7 +187,7 @@
             e.preventDefault();
             const url = "http://localhost:8000/books";
             const book = {
-                "isbn": document.getElementById("BooksFormIsbn").value,
+                "isbn": document.getElementById("BooksFormIsbn").value.replaceAll('-', ''),
                 "title": document.getElementById("BooksFormTitle").value,
                 "author": document.getElementById("BooksFormAuthor").value
             };
@@ -190,9 +196,11 @@
                 if(response.ok) {
                     addBooksList(url);
                     leaveFormBlank();
-                } else {
-                    location.reload();
+                } else if (response.status === 400) {
+                    return response.json();
                 }
+            }).then(function (data) {
+                showBookFormError(data.error);
             })
         }
 
@@ -216,6 +224,16 @@
             isbnInput.disabled = true;
             document.getElementById("BooksFormTitle").value = book.title;
             document.getElementById("BooksFormAuthor").value = book.author;
+        }
+
+        function hideBookFormError() {
+            document.getElementById("BookFormErrorMsg").style.display = "none";
+        }
+
+        function showBookFormError(error) {
+            const errMsg = document.getElementById("BookFormErrorMsg");
+            errMsg.innerText = error;
+            errMsg.style.display = "block";
         }
 
 
